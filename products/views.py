@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, reverse
 from django.contrib import messages
 from django.db.models import Q
-from .models import Product
+from .models import Product, Level
 
 # Create your views here.
 
@@ -10,8 +10,14 @@ def all_products(request):
 
     products = Product.objects.all()
     query = None
+    levels = None
     
     if request.GET:
+        if 'level' in request.GET:
+            levels = request.GET['level'].split(',')
+            products = products.filter(level__name__in=levels)
+            levels = Level.objects.filter(name__in=levels)
+
         if 'q' in request.GET:
             query = request.GET['q']
             if not query:
@@ -24,6 +30,7 @@ def all_products(request):
     context = {
         'products': products,
         'search_term': query,
+        'current_levels': levels,
     }
 
     return render(request, 'products/products.html', context)
